@@ -1,3 +1,19 @@
+/**
+* Basic js code to gather 100 arefacts from the v and a museums V2 api and then display them in a timelineish format.
+*
+*  Created by Dave Walsh
+*/
+
+
+
+
+/**
+ * fetch 100 items from the vam api
+ *
+ * @return {*} 
+ */
+
+
 async function fetchMuseumObjects() {
     const itemsPerPage = 15;
     const targetItems = 100;
@@ -37,6 +53,12 @@ async function fetchMuseumObjects() {
 }
 
 
+/**
+ * present the returned results as a timeline
+ *
+ * @param {*} object
+ * @return {*} 
+ */
 function createTimelineItem(object) {
     const timelineItem = document.createElement("div");
     timelineItem.className = "timeline-item";
@@ -53,44 +75,16 @@ function createTimelineItem(object) {
     const image = document.createElement("img");
     image.src = object._images._primary_thumbnail || "";
     timelineItem.appendChild(image);
-    // const description = document.createElement("p");
-    // description.textContent = object.fields.description || "No description available.";
-    // timelineItem.appendChild(description);
 
     return timelineItem;
 }
 
-// async function displayTimeline() {
-//     const timelineElement = document.getElementById("timeline");
-//     const museumObjects = await fetchMuseumObjects();
-    
-//     museumObjects.forEach((object) => {
-//         const timelineItem = createTimelineItem(object);
-//         timelineElement.appendChild(timelineItem);
-//     });
-// }
-
-// async function displayTimeline() {
-//     const timelineElement = document.getElementById("timeline");
-//     const museumObjects = await fetchMuseumObjects();
-
-//     // Sort the items by production date (oldest to newest)
-//     museumObjects.sort((a, b) => {
-        
-        
-//         const dateA = a._primaryDate || Number.MAX_VALUE;
-//         console.log(a._primaryDate);
-//         const dateB = b._primaryDate || Number.MAX_VALUE;
-//         return dateA - dateB;
-//         console.log(dateB);
-//     });
-
-//     museumObjects.forEach((object) => {
-//         const timelineItem = createTimelineItem(object);
-//         timelineElement.appendChild(timelineItem);
-//     });
-// }
-
+/**
+ * extract the earliest date from the random date formats stored
+ *
+ * @param {*} dateString
+ * @return {*} 
+ */
 function extractEarliestYear(dateString) {
     const yearMatches = dateString.match(/\d{4}/g);
 
@@ -101,6 +95,11 @@ function extractEarliestYear(dateString) {
     return Number.MAX_VALUE;
 }
 
+
+/**
+ * display the results
+ *
+ */
 async function displayTimeline() {
     const timelineElement = document.getElementById("timeline");
     const museumObjects = await fetchMuseumObjects();
@@ -118,5 +117,5 @@ async function displayTimeline() {
     });
 }
 
-
+// initiate the js code
 displayTimeline();
