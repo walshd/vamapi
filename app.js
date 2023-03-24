@@ -1,0 +1,122 @@
+async function fetchMuseumObjects() {
+    const itemsPerPage = 15;
+    const targetItems = 100;
+    let currentPage = 1;
+    let fetchedItems = [];
+
+    try {
+        while (fetchedItems.length < targetItems) {
+            const endpoint = `https://api.vam.ac.uk/v2/objects/search?q_object_production_date_year:[*%20TO%20*]&page=${currentPage}&page_size=${itemsPerPage}`;
+            const response = await fetch(endpoint);
+
+            if (response.ok) {
+                const data = await response.json();
+                fetchedItems = fetchedItems.concat(data.records);
+
+                // Check if there are more items to fetch
+                if (data.records.length < itemsPerPage) {
+                    break;
+                }
+            } else {
+                throw new Error("Failed to fetch data from the V&A Museum API");
+            }
+
+            currentPage++;
+        }
+
+        // Truncate the fetched items if it exceeds the target
+        if (fetchedItems.length > targetItems) {
+            fetchedItems = fetchedItems.slice(0, targetItems);
+        }
+
+        return fetchedItems;
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        return [];
+    }
+}
+
+
+function createTimelineItem(object) {
+    const timelineItem = document.createElement("div");
+    timelineItem.className = "timeline-item";
+
+    const title = document.createElement("h2");
+    title.textContent = object._primaryTitle || "Untitled";
+    timelineItem.appendChild(title);
+
+    const productionDate = document.createElement("p");
+    const date = object._primaryDate || "Undefined";
+    productionDate.textContent = `Production Date: ${date}`;
+    timelineItem.appendChild(productionDate);
+
+    const image = document.createElement("img");
+    image.src = object._images._primary_thumbnail || "";
+    timelineItem.appendChild(image);
+    // const description = document.createElement("p");
+    // description.textContent = object.fields.description || "No description available.";
+    // timelineItem.appendChild(description);
+
+    return timelineItem;
+}
+
+// async function displayTimeline() {
+//     const timelineElement = document.getElementById("timeline");
+//     const museumObjects = await fetchMuseumObjects();
+    
+//     museumObjects.forEach((object) => {
+//         const timelineItem = createTimelineItem(object);
+//         timelineElement.appendChild(timelineItem);
+//     });
+// }
+
+// async function displayTimeline() {
+//     const timelineElement = document.getElementById("timeline");
+//     const museumObjects = await fetchMuseumObjects();
+
+//     // Sort the items by production date (oldest to newest)
+//     museumObjects.sort((a, b) => {
+        
+        
+//         const dateA = a._primaryDate || Number.MAX_VALUE;
+//         console.log(a._primaryDate);
+//         const dateB = b._primaryDate || Number.MAX_VALUE;
+//         return dateA - dateB;
+//         console.log(dateB);
+//     });
+
+//     museumObjects.forEach((object) => {
+//         const timelineItem = createTimelineItem(object);
+//         timelineElement.appendChild(timelineItem);
+//     });
+// }
+
+function extractEarliestYear(dateString) {
+    const yearMatches = dateString.match(/\d{4}/g);
+
+    if (yearMatches && yearMatches.length > 0) {
+        return Math.min(...yearMatches.map(Number));
+    }
+
+    return Number.MAX_VALUE;
+}
+
+async function displayTimeline() {
+    const timelineElement = document.getElementById("timeline");
+    const museumObjects = await fetchMuseumObjects();
+
+    // Sort the items by primary date (oldest to newest)
+    museumObjects.sort((a, b) => {
+        const dateA = a._primaryDate ? extractEarliestYear(a._primaryDate) : Number.MAX_VALUE;
+        const dateB = b._primaryDate ? extractEarliestYear(b._primaryDate) : Number.MAX_VALUE;
+        return dateA - dateB;
+    });
+
+    museumObjects.forEach((object) => {
+        const timelineItem = createTimelineItem(object);
+        timelineElement.appendChild(timelineItem);
+    });
+}
+
+
+displayTimeline();
